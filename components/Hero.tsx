@@ -71,19 +71,6 @@ const Hero: FC<THeroProps> = ({
         ))}
       </div>
 
-      {/* Github link section */}
-      {/* <p className="text-center text-sm font-light leading-[normal] text-[#1B1B16]">
-        Fully open source!{" "}
-        <span className="text-sm font-medium underline">
-          <a
-            href="https://github.com/Nutlope/turboseek"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Star it on github.
-          </a>
-        </span>
-      </p> */}
     </div>
   );
 };
@@ -97,17 +84,17 @@ type suggestionType = {
 const suggestions: suggestionType[] = [
   {
     id: 1,
-    name: "How does photosynthesis work?",
+    name: "What are the key concepts of object-oriented programming?",
     icon: "/img/icon _leaf_.svg",
   },
   {
     id: 2,
-    name: "How can I get a 6 pack in 3 months?",
+    name: "How do I prepare for technical interviews?",
     icon: "/img/icon _dumbell_.svg",
   },
   {
     id: 3,
-    name: "Can you explain the theory of relativity?",
+    name: "What are the best practices for writing clean code?",
     icon: "/img/icon _atom_.svg",
   },
 ];

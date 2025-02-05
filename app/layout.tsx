@@ -5,11 +5,11 @@ import "./globals.css";
 
 const inter = Lexend({ subsets: ["latin"] });
 
-let title = "Turbo Seek – AI Search Engine";
+let title = "Yukti | Debugshala's AI Assistant";
 let description =
-  "Search smarter and faster with our open source AI search engine";
-let url = "https://turboseek.io/";
-let ogimage = "https://turboseek.io/og-image.png";
+  "Search smarter and faster with Yukti by Debugshala";
+let url = "https://chat.debugshala.com/";
+let ogimage = "https://ai.debugshala.com/templates/classic-theme/assets/images/logo_dark.svg";
 let sitename = "TurboSeek.io";
 
 export const metadata: Metadata = {
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title,
   description,
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.svg",
   },
   openGraph: {
     images: [ogimage],
