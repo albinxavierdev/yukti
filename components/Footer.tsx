@@ -8,13 +8,13 @@ const Footer = () => {
         <a href="/" className="flex items-center gap-2.5">
           <Image
             unoptimized
-            src="/img/logo.svg"
+            src="/img/Debugshala Icon-1.png"
             alt="footer"
             width={31}
             height={30}
           />
           <span className="text-base font-medium leading-[normal]">
-            TurboSeek.io
+            Debugshala
           </span>
         </a>
         <div className="flex items-center gap-3">

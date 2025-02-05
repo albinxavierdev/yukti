@@ -9,11 +9,11 @@ const Header = () => {
           <a href="/">
             <Image
               unoptimized
-              src="/img/logo.svg"
+              src="/img/logo_dark.svg"
               alt="logo"
-              width={40}
-              height={39}
-              className="h-[33px] w-[35px] lg:h-10 lg:w-10"
+              width={60}
+              height={59}
+              className="h-[50px] w-[55px] lg:h-12 lg:w-12"
             />
           </a>
         </div>

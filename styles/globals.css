@@ -61,9 +61,6 @@ body {
   background: linear-gradient(270deg, #09a7b1, #166aee);
   background-size: 400% 400%;
   animation: gradient-animation 5s ease infinite;
-  -webkit-background-clip: text; /* For Safari */
-  background-clip: text; /* For other browsers */
-  color: transparent; /* Make text color transparent */
 }
 
 @keyframes gradient-animation {
@@ -82,7 +79,7 @@ body {
 :root {
     --color-primary: #09a7b1; /* Primary Color */
     --color-secondary: #166aee; /* Secondary Color */
-    --color-black: #ffffff; /* White Color */
+    --color-black: #000000; /* Black Color */
 }
 
 /* Example usage */

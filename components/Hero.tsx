@@ -21,22 +21,22 @@ const Hero: FC<THeroProps> = ({
     <div className="flex flex-col items-center justify-center">
       <a
         className="mb-4 inline-flex h-7 shrink-0 items-center gap-[9px] rounded-[50px] border-[0.5px] border-solid border-[#E6E6E6] bg-white px-3 py-4 shadow-[0px_1px_1px_0px_rgba(0,0,0,0.25)]"
-        href="https://www.togetherai.link/"
+        href="https://www.bizfy.in/"
         target="_blank"
       >
         <Image
           unoptimized
-          src="/img/together-ai.svg"
+          src="img\Black Icon-01.png"
           alt="hero"
-          width={18}
-          height={18}
+          width={48}
+          height={48}
         />
         <span className="text-center text-base font-light leading-[normal] text-[#1B1B16]">
-          Powered by Together AI
+          Powered by Bizfy
         </span>
       </a>
-      <h2 className="bg-custom-gradient bg-clip-text pb-7 pt-2 text-center text-3xl font-semibold leading-[normal] lg:text-[64px]">
-        Search smarter & faster
+      <h2 className="bg-custom-gradient bg-clip-text pb-7 pt-2 text-center text-3xl font-semibold leading-[normal] lg:text-[64px] text-transparent">
+        Code smarter, learn faster
       </h2>
 
       {/* input section */}
@@ -72,7 +72,7 @@ const Hero: FC<THeroProps> = ({
       </div>
 
       {/* Github link section */}
-      <p className="text-center text-sm font-light leading-[normal] text-[#1B1B16]">
+      {/* <p className="text-center text-sm font-light leading-[normal] text-[#1B1B16]">
         Fully open source!{" "}
         <span className="text-sm font-medium underline">
           <a
@@ -83,7 +83,7 @@ const Hero: FC<THeroProps> = ({
             Star it on github.
           </a>
         </span>
-      </p>
+      </p> */}
     </div>
   );
 };
