@@ -14,96 +14,97 @@ export interface ChatGPTMessage {
 export interface TogetherAIStreamPayload {
   model: string;
   messages: ChatGPTMessage[];
-
   stream: boolean;
 }
-
-// TODO: Add back the Together TypeScript SDK with Helicone
-// const together = new Together({
-//   apiKey: process.env["TOGETHER_API_KEY"],
-//   baseURL: "https://together.helicone.ai/v1",
-//   defaultHeaders: {
-//     "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
-//   },
-// });
 
 export async function TogetherAIStream(payload: TogetherAIStreamPayload) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
-  const res = await fetch("https://together.helicone.ai/v1/chat/completions", {
-    headers: {
-      "Content-Type": "application/json",
-      "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
-      Authorization: `Bearer ${process.env.TOGETHER_API_KEY ?? ""}`,
-    },
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch("https://together.helicone.ai/v1/chat/completions", {
+      headers: {
+        "Content-Type": "application/json",
+        "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+        Authorization: `Bearer ${process.env.TOGETHER_API_KEY ?? ""}`,
+      },
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
 
-  const readableStream = new ReadableStream({
-    async start(controller) {
-      // callback
-      const onParse = (event: ParsedEvent | ReconnectInterval) => {
-        if (event.type === "event") {
-          const data = event.data;
-          controller.enqueue(encoder.encode(data));
-        }
-      };
+    if (!res.ok) {
+      const errorBody = await res.text();
+      throw new Error(`API request failed: ${res.status} - ${errorBody}`);
+    }
 
-      // optimistic error handling
-      if (res.status !== 200) {
-        const data = {
-          status: res.status,
-          statusText: res.statusText,
-          body: await res.text(),
+    let counter = 0;
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        const onParse = (event: ParsedEvent | ReconnectInterval) => {
+          if (event.type === "event") {
+            const data = event.data;
+            controller.enqueue(encoder.encode(data));
+          }
         };
-        console.log(
-          `Error: recieved non-200 status code, ${JSON.stringify(data)}`,
-        );
-        controller.close();
-        return;
-      }
 
-      // stream response (SSE) from OpenAI may be fragmented into multiple chunks
-      // this ensures we properly read chunks and invoke an event for each SSE event stream
-      const parser = createParser(onParse);
-      // https://web.dev/streams/#asynchronous-iteration
-      for await (const chunk of res.body as any) {
-        parser.feed(decoder.decode(chunk));
-      }
-    },
-  });
-
-  let counter = 0;
-  const transformStream = new TransformStream({
-    async transform(chunk, controller) {
-      const data = decoder.decode(chunk);
-      // https://beta.openai.com/docs/api-reference/completions/create#completions/create-stream
-      if (data === "[DONE]") {
-        controller.terminate();
-        return;
-      }
-      try {
-        const json = JSON.parse(data);
-        const text = json.choices[0].delta?.content || "";
-        if (counter < 2 && (text.match(/\n/) || []).length) {
-          // this is a prefix character (i.e., "\n\n"), do nothing
-          return;
+        const parser = createParser(onParse);
+        
+        try {
+          if (!res.body) throw new Error("No response body");
+          const reader = res.body.getReader();
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            parser.feed(decoder.decode(value));
+          }
+        } catch (e) {
+          controller.error(`Stream parsing error: ${e}`);
+        } finally {
+          controller.close();
         }
-        // stream transformed JSON resposne as SSE
-        const payload = { text: text };
-        // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify(payload)}\n\n`),
-        );
-        counter++;
-      } catch (e) {
-        // maybe parse error
-        controller.error(e);
-      }
-    },
-  });
+      },
+    });
 
-  return readableStream.pipeThrough(transformStream);
+    const transformStream = new TransformStream({
+      async transform(chunk, controller) {
+        try {
+          const data = decoder.decode(chunk);
+          if (data === "[DONE]") {
+            controller.terminate();
+            return;
+          }
+
+          const json = JSON.parse(data);
+          const text = json.choices?.[0]?.delta?.content || "";
+          
+          // Skip initial empty messages and newlines
+          if (counter < 2 && text.trim() === "") return;
+
+          const payload = { text };
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
+          );
+          counter++;
+        } catch (e) {
+          console.error("Transform error:", e);
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ error: "Stream parsing error" })}\n\n`)
+          );
+        }
+      },
+      flush(controller) {
+        controller.terminate();
+      }
+    });
+
+    return readableStream.pipeThrough(transformStream);
+
+  } catch (e) {
+    console.error("TogetherAIStream error:", e);
+    return new Response(
+      JSON.stringify({ error: "Failed to create stream" }),
+      { status: 500 }
+    );
+  }
 }

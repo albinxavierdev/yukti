@@ -7,13 +7,10 @@ import Hero from "@/components/Hero";
 import InputArea from "@/components/InputArea";
 import SimilarTopics from "@/components/SimilarTopics";
 import Sources from "@/components/Sources";
+import ChatHistory from "@/components/ChatHistory";
 import Image from "next/image";
 import { useRef, useState } from "react";
-import {
-  createParser,
-  ParsedEvent,
-  ReconnectInterval,
-} from "eventsource-parser";
+import { createParser } from "eventsource-parser";
 
 export default function Home() {
   const [promptValue, setPromptValue] = useState("");
@@ -24,6 +21,7 @@ export default function Home() {
   const [answer, setAnswer] = useState("");
   const [similarQuestions, setSimilarQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [chatHistory, setChatHistory] = useState<string[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const handleDisplayResult = async (newQuestion?: string) => {
@@ -33,6 +31,7 @@ export default function Home() {
     setLoading(true);
     setQuestion(newQuestion);
     setPromptValue("");
+    setChatHistory((prev) => [...prev, newQuestion!]);
 
     await Promise.all([
       handleSourcesAndAnswer(newQuestion),
@@ -41,6 +40,7 @@ export default function Home() {
 
     setLoading(false);
   };
+
 
   async function handleSourcesAndAnswer(question: string) {
     setIsLoadingSources(true);
@@ -137,49 +137,54 @@ export default function Home() {
         )}
 
         {showResult && (
-          <div className="flex h-full min-h-[68vh] w-full grow flex-col justify-between">
-            <div className="container w-full space-y-2">
-              <div className="container space-y-2">
-                <div className="container flex w-full items-start gap-3 px-5 pt-2 lg:px-10">
-                  <div className="flex w-fit items-center gap-4">
-                    <Image
-                      unoptimized
-                      src={"/img/message-question-circle.svg"}
-                      alt="message"
-                      width={30}
-                      height={30}
-                      className="size-[24px]"
-                    />
-                    <p className="pr-5 font-bold uppercase leading-[152%] text-black">
-                      Question:
-                    </p>
-                  </div>
-                  <div className="grow">&quot;{question}&quot;</div>
-                </div>
-                <>
-                  <Sources sources={sources} isLoading={isLoadingSources} />
-                  <Answer answer={answer} />
-                  <SimilarTopics
-                    similarQuestions={similarQuestions}
-                    handleDisplayResult={handleDisplayResult}
-                    reset={reset}
-                  />
-                </>
-              </div>
-
-              <div className="pt-1 sm:pt-2" ref={chatContainerRef}></div>
-            </div>
-            <div className="container px-4 lg:px-0">
-              <InputArea
-                promptValue={promptValue}
-                setPromptValue={setPromptValue}
-                handleDisplayResult={handleDisplayResult}
-                disabled={loading}
-                reset={reset}
+          <div className="flex h-[calc(100vh-140px)] w-full gap-4">
+            {/* Left Column - Chat History */}
+            <div className="w-1/4 min-w-[300px] rounded-lg border border-[#C2C2C2] bg-white p-4">
+              <ChatHistory 
+                chats={chatHistory}
+                onChatSelect={(selectedChat: string) => {
+                  setQuestion(selectedChat);
+                  handleDisplayResult(selectedChat);
+                }}
+                onClear={() => setChatHistory([])}
               />
+            </div>
+
+            {/* Middle Column - Answer & Similar Topics */}
+            <div className="flex w-2/4 flex-col gap-4 overflow-y-auto">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-start gap-3 rounded-lg border border-[#C2C2C2] bg-white p-4">
+                  <Image
+                    unoptimized
+                    src={"/img/message-question-circle.svg"}
+                    alt="message"
+                    width={30}
+                    height={30}
+                    className="size-[24px]"
+                  />
+                  <div className="flex-1">
+                    <p className="font-bold uppercase text-black">Question:</p>
+                    <p className="text-gray-600">"{question}"</p>
+                  </div>
+                </div>
+                
+                <Answer answer={answer} />
+                <SimilarTopics
+                  similarQuestions={similarQuestions}
+                  handleDisplayResult={handleDisplayResult}
+                  reset={reset}
+                />
+              </div>
+              <div ref={chatContainerRef}></div>
+            </div>
+
+            {/* Right Column - Sources */}
+            <div className="w-1/4 min-w-[300px] overflow-y-auto rounded-lg border border-[#C2C2C2] bg-white p-4">
+              <Sources sources={sources} isLoading={isLoadingSources} />
             </div>
           </div>
         )}
+
       </main>
       <Footer />
     </>

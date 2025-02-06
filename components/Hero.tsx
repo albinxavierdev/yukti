@@ -5,7 +5,7 @@ import InputArea from "./InputArea";
 type THeroProps = {
   promptValue: string;
   setPromptValue: React.Dispatch<React.SetStateAction<string>>;
-  handleDisplayResult: () => void;
+  handleDisplayResult: (newQuestion?: string) => void;
 };
 
 const Hero: FC<THeroProps> = ({
@@ -14,33 +14,40 @@ const Hero: FC<THeroProps> = ({
   handleDisplayResult,
 }) => {
   const handleClickSuggestion = (value: string) => {
-    setPromptValue(value);
+    setPromptValue(value); // Pre-fill input
+    // Auto-trigger search after short delay for better UX
+    setTimeout(() => handleDisplayResult(value), 100);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <a
-        className="mb-4 inline-flex h-7 shrink-0 items-center gap-[9px] rounded-[50px] border-[0.5px] border-solid border-[#E6E6E6] bg-white px-3 py-4 shadow-[0px_1px_1px_0px_rgba(0,0,0,0.25)]"
-        href="https://www.bizfy.in/"
-        target="_blank"
-      >
-        <Image
-          unoptimized
-          src="img\Black Icon-01.png"
-          alt="hero"
-          width={48}
-          height={48}
-        />
-        <span className="text-center text-base font-light leading-[normal] text-[#1B1B16]">
-          Powered by Bizfy
-        </span>
-      </a>
-      <h2 className="bg-custom-gradient bg-clip-text pb-7 pt-2 text-center text-3xl font-semibold leading-[normal] lg:text-[64px] text-transparent">
-        Code smarter, learn faster
-      </h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-[#0A0A0A] to-[#1A1A1A] text-white px-4">
+      {/* Powered by Badge */}
+      <div className="mb-8 animate-fade-in">
+        <a
+          className="inline-flex items-center gap-2 rounded-full bg-[#1E1E1E] px-4 py-2 text-sm font-light text-[#A0A0A0] hover:text-white transition-all hover:bg-[#2A2A2A]"
+          href="https://www.bizfy.in/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            src="/img/Black Icon-01.png"
+            alt="Bizfy"
+            width={20}
+            height={20}
+            className="filter brightness-0 invert"
+          />
+          <span>Powered by Bizfy</span>
+        </a>
+      </div>
 
-      {/* input section */}
-      <div className="w-full max-w-[708px] pb-6">
+      {/* Main Heading */}
+      <h1 className="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-[#00FF87] to-[#60EFFF] mb-8 leading-tight">
+        Code smarter,<br />
+        learn faster
+      </h1>
+
+      {/* Single Input Field */}
+      <div className="w-full max-w-2xl mb-8">
         <InputArea
           promptValue={promptValue}
           setPromptValue={setPromptValue}
@@ -48,53 +55,50 @@ const Hero: FC<THeroProps> = ({
         />
       </div>
 
-      {/* Suggestions section */}
-      <div className="flex flex-wrap items-center justify-center gap-2.5 pb-[30px] lg:flex-nowrap lg:justify-normal">
+      {/* Quick Suggestions */}
+      <div className="flex flex-wrap justify-center gap-3 max-w-2xl">
         {suggestions.map((item) => (
-          <div
-            className="flex h-[35px] cursor-pointer items-center justify-center gap-[5px] rounded border border-solid border-[#C1C1C1] bg-[#EDEDEA] px-2.5 py-2"
-            onClick={() => handleClickSuggestion(item?.name)}
+          <button
             key={item.id}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1E1E1E] text-[#A0A0A0] hover:text-white hover:bg-[#2A2A2A] transition-all group"
+            onClick={() => handleClickSuggestion(item.name)}
           >
             <Image
-              unoptimized
               src={item.icon}
-              alt={item.name}
-              width={18}
+              alt=""
+              width={16}
               height={16}
-              className="w-[18px]"
+              className="filter brightness-0 invert opacity-70 group-hover:opacity-100 transition-opacity"
+              aria-hidden
             />
-            <span className="text-sm font-light leading-[normal] text-[#1B1B16]">
-              {item.name}
-            </span>
-          </div>
+            <span className="text-sm max-w-[200px] truncate">{item.name}</span>
+          </button>
         ))}
       </div>
-
     </div>
   );
 };
 
-type suggestionType = {
+type SuggestionType = {
   id: number;
   name: string;
   icon: string;
 };
 
-const suggestions: suggestionType[] = [
+const suggestions: SuggestionType[] = [
   {
     id: 1,
-    name: "What are the key concepts of object-oriented programming?",
+    name: "OOP core concepts",
     icon: "/img/icon _leaf_.svg",
   },
   {
     id: 2,
-    name: "How do I prepare for technical interviews?",
+    name: "Technical interview prep",
     icon: "/img/icon _dumbell_.svg",
   },
   {
     id: 3,
-    name: "What are the best practices for writing clean code?",
+    name: "Clean code practices",
     icon: "/img/icon _atom_.svg",
   },
 ];
