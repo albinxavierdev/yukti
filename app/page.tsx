@@ -8,8 +8,13 @@ import InputArea from "@/components/InputArea";
 import SimilarTopics from "@/components/SimilarTopics";
 import Sources from "@/components/Sources";
 import ChatHistory from "@/components/ChatHistory";
+//
+
+import { useAuth } from '../app/backend/useAuth';
+import { supabase } from '../app/backend/supabase';
+//
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef, useState ,useEffect} from "react";
 import { createParser } from "eventsource-parser";
 
 export default function Home() {
@@ -23,16 +28,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<string[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+///
+const { user } = useAuth();  // Add this at the top with other state declarations
 
-  const handleDisplayResult = async (newQuestion?: string) => {
-    newQuestion = newQuestion || promptValue;
+// First, import supabase at the top
 
-    setShowResult(true);
-    setLoading(true);
-    setQuestion(newQuestion);
-    setPromptValue("");
-    setChatHistory((prev) => [...prev, newQuestion!]);
 
+<<<<<<< HEAD
     // Get the last four questions from chat history
     const previousQuestions = chatHistory.slice(-4);
 
@@ -40,11 +42,94 @@ export default function Home() {
       handleSourcesAndAnswer(newQuestion, previousQuestions),
       handleSimilarQuestions(newQuestion),
     ]);
+=======
+const handleDisplayResult = async (newQuestion?: string) => {
+  newQuestion = newQuestion || promptValue;
+>>>>>>> 235b5f5 (Updated handleDisplayResult function in page.tsx)
 
-    setLoading(false);
+  setShowResult(true);
+  setLoading(true);
+  setQuestion(newQuestion);
+  setPromptValue("");
+
+  // Get the answer
+  await handleSourcesAndAnswer(newQuestion);
+  
+  // Save to Supabase
+  if (user) {
+    const { data, error } = await supabase
+      .from('chat_history')
+      .insert({
+        user_id: user.id,
+        chat_text: newQuestion,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.log('Supabase save error:', error);
+    } else {
+      console.log('Successfully saved to Supabase:', data);
+    }
+  }
+
+  // Update local state
+  setChatHistory(prev => [...prev, newQuestion!]);
+  await handleSimilarQuestions(newQuestion);
+  setLoading(false);
+};
+
+
+useEffect(() => {
+  const loadChatHistory = async () => {
+    if (user) {
+      const { data } = await supabase
+        .from('chat_history')
+        .select('chat_text')
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        setChatHistory(data.map(item => item.chat_text));
+      }
+    }
   };
 
+<<<<<<< HEAD
   async function handleSourcesAndAnswer(question: string, previousQuestions: string[]) {
+=======
+  loadChatHistory();
+}, [user]);
+
+const handleClearHistory = async () => {
+  if (user) {
+    await supabase
+      .from('chat_history')
+      .delete()
+      .eq('user_id', user.id);
+  }
+  setChatHistory([]);
+};
+
+// comment this/
+  // const handleDisplayResult = async (newQuestion?: string) => {
+  //   newQuestion = newQuestion || promptValue;
+
+  //   setShowResult(true);
+  //   setLoading(true);
+  //   setQuestion(newQuestion);
+  //   setPromptValue("");
+  //   setChatHistory((prev) => [...prev, newQuestion!]);
+
+  //   await Promise.all([
+  //     handleSourcesAndAnswer(newQuestion),
+  //     handleSimilarQuestions(newQuestion),
+  //   ]);
+
+  //   setLoading(false);
+  // };
+
+
+  async function handleSourcesAndAnswer(question: string) {
+>>>>>>> 235b5f5 (Updated handleDisplayResult function in page.tsx)
     setIsLoadingSources(true);
     let sourcesResponse = await fetch("/api/getSources", {
       method: "POST",
@@ -142,14 +227,23 @@ export default function Home() {
           <div className="flex h-[calc(100vh-140px)] w-full gap-4">
             {/* Left Column - Chat History */}
             <div className="w-1/4 min-w-[300px] rounded-lg border border-[#C2C2C2] bg-white p-4">
-              <ChatHistory 
+              {/* <ChatHistory 
                 chats={chatHistory}
                 onChatSelect={(selectedChat: string) => {
                   setQuestion(selectedChat);
                   handleDisplayResult(selectedChat);
                 }}
                 onClear={() => setChatHistory([])}
-              />
+              /> */}
+                  <ChatHistory 
+        chats={chatHistory}
+        onChatSelect={(selectedChat: string) => {
+          setQuestion(selectedChat);
+          handleDisplayResult(selectedChat);
+        }}
+        onClear={handleClearHistory}
+      />
+     
             </div>
 
             {/* Middle Column - Answer & Similar Topics */}
@@ -179,7 +273,15 @@ export default function Home() {
               </div>
               <div ref={chatContainerRef}></div>
             </div>
-
+                  {/* seacr box */}
+                  <div className="fixed bottom-8 left-1/2 w-full max-w-xl sm:max-w-xl -translate-x-1/2 p-0 bg-white shadow-lg rounded-2xl">
+ 
+                  <InputArea  
+                   promptValue={promptValue}
+                   setPromptValue={setPromptValue}
+                   handleDisplayResult={handleDisplayResult}
+                  />
+                  </div>
             {/* Right Column - Sources */}
             <div className="w-1/4 min-w-[300px] overflow-y-auto rounded-lg border border-[#C2C2C2] bg-white p-4">
               <Sources sources={sources} isLoading={isLoadingSources} />
