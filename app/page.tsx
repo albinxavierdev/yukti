@@ -33,16 +33,18 @@ export default function Home() {
     setPromptValue("");
     setChatHistory((prev) => [...prev, newQuestion!]);
 
+    // Get the last four questions from chat history
+    const previousQuestions = chatHistory.slice(-4);
+
     await Promise.all([
-      handleSourcesAndAnswer(newQuestion),
+      handleSourcesAndAnswer(newQuestion, previousQuestions),
       handleSimilarQuestions(newQuestion),
     ]);
 
     setLoading(false);
   };
 
-
-  async function handleSourcesAndAnswer(question: string) {
+  async function handleSourcesAndAnswer(question: string, previousQuestions: string[]) {
     setIsLoadingSources(true);
     let sourcesResponse = await fetch("/api/getSources", {
       method: "POST",
@@ -62,7 +64,7 @@ export default function Home() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ question, sources }),
+      body: JSON.stringify({ question, sources, previousQuestions }),
     });
 
     if (!response.ok) {
